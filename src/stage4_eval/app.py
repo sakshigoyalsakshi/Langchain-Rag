@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src" / "stage1_naive"))
 sys.path.insert(0, str(ROOT / "src" / "stage2_advanced"))
 sys.path.insert(0, str(ROOT / "src" / "stage3_modular"))
+sys.path.insert(0, str(ROOT / "src" / "stage4_agentic"))
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -12,11 +13,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 st.title("RAG Pipeline Demo — FastAPI Documentation")
-st.caption("Compare Naive, Advanced, and Modular RAG on the same question.")
+st.caption("Compare Naive, Advanced, Modular, and Agentic RAG on the same question.")
 
 pipeline = st.selectbox(
     "Choose a pipeline",
-    ["Stage 1 — Naive RAG", "Stage 2 — Advanced RAG", "Stage 3 — Modular RAG"],
+    ["Stage 1 — Naive RAG", "Stage 2 — Advanced RAG", "Stage 3 — Modular RAG", "Stage 4b — Agentic RAG"],
 )
 
 question = st.text_input("Ask a question", placeholder="How do I add authentication to a FastAPI app?")
@@ -46,7 +47,7 @@ if st.button("Ask") and question:
             prompt = ChatPromptTemplate.from_template("Answer using ONLY the context.\n\nContext:\n{context}\n\nQuestion: {question}")
             answer = (prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0) | StrOutputParser()).invoke({"context": context, "question": question})
 
-        else:
+        elif pipeline == "Stage 3 — Modular RAG":
             from hybrid_retriever import hybrid_retrieve
             from langchain_openai import ChatOpenAI
             from langchain_core.prompts import ChatPromptTemplate
@@ -56,11 +57,19 @@ if st.button("Ask") and question:
             prompt = ChatPromptTemplate.from_template("Answer using ONLY the context.\n\nContext:\n{context}\n\nQuestion: {question}")
             answer = (prompt | ChatOpenAI(model="gpt-4o-mini", temperature=0) | StrOutputParser()).invoke({"context": context, "question": question})
 
+        else:
+            from main import ask as agentic_ask
+            answer = agentic_ask(question)
+            docs = []
+
     st.subheader("Answer")
     st.write(answer)
 
     with st.expander("Retrieved context"):
-        for i, doc in enumerate(docs):
-            st.markdown(f"**Chunk {i+1}**")
-            st.write(doc.page_content)
-            st.divider()
+        if docs:
+            for i, doc in enumerate(docs):
+                st.markdown(f"**Chunk {i+1}**")
+                st.write(doc.page_content)
+                st.divider()
+        else:
+            st.write("Agentic RAG retrieves dynamically — no fixed context to show.")
