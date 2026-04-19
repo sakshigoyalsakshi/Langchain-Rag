@@ -23,6 +23,9 @@ Stage 3 — Modular RAG
 
 Stage 4 — Eval + UI
   RAGAS scoring across all stages + Streamlit demo
+
+Stage 4b — Agentic RAG
+  question → LLM decides → search_docs (0 or more times) → final answer
 ```
 
 ---
