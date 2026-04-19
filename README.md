@@ -2,6 +2,8 @@
 
 A hands-on implementation of four RAG (Retrieval-Augmented Generation) architectures, built progressively from Naive RAG to Agentic RAG. Each stage fixes the failure modes of the previous one. Corpus is the full FastAPI documentation. Evaluated with RAGAS on the same question set.
 
+> **Live demo:** https://langchain-rag-bq3q8lk4q3lfwde9ru6zxd.streamlit.app/
+
 **Corpus:** FastAPI documentation (154 markdown files from the official GitHub repo)  
 **LLM:** GPT-4o-mini  
 **Embeddings:** OpenAI text-embedding-3-small  
@@ -63,9 +65,11 @@ fastapi-docs-rag/
 │   │   ├── hybrid_retriever.py # BM25 + dense search
 │   │   ├── fusion.py           # Reciprocal Rank Fusion
 │   │   └── main.py             # modular RAG chain
+│   ├── stage4_agentic/
+│   │   └── main.py             # agentic RAG with tool-calling loop
 │   └── stage4_eval/
 │       ├── eval.py             # RAGAS evaluation across all stages
-│       └── app.py              # Streamlit UI
+│       └── app.py              # Streamlit UI (all 4 pipelines)
 ├── vectorstore/                # ChromaDB persisted on disk
 ├── notebooks/
 │   └── exploration.ipynb
@@ -118,7 +122,12 @@ python src/stage3_modular/main.py
 python src/stage4_eval/eval.py
 ```
 
-**Streamlit UI:**
+**Stage 4b — Agentic RAG:**
+```bash
+python src/stage4_agentic/main.py
+```
+
+**Streamlit UI (all pipelines):**
 ```bash
 streamlit run src/stage4_eval/app.py
 ```
@@ -132,6 +141,8 @@ streamlit run src/stage4_eval/app.py
 **Cross-encoder reranking** — After retrieving top-k candidates by cosine similarity, a cross-encoder (BERT fine-tuned on MS MARCO) scores each (question, chunk) pair jointly — far more precise than embedding similarity alone.
 
 **BM25 + RRF** — Dense vector search understands meaning but misses exact keyword matches. BM25 keyword search does the opposite. Reciprocal Rank Fusion merges both ranked lists: a chunk appearing in both at decent ranks beats one that topped only a single list.
+
+**Agentic RAG** — The LLM decides whether to retrieve, what to search for, and whether the result is sufficient before answering. It can call `search_docs` zero or more times per question, recovering from poor results by retrying with a different query.
 
 ---
 
